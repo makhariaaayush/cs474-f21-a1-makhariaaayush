@@ -12,7 +12,11 @@ import java.util.Set;
 public class A1Solution implements DynamicDispatchExplainer {
     @Override
     public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
-
+// equal = false
+//         hashcode
+//         equals java.lang.parser
+//         tostring
+//
         Set<String> ret = new HashSet<>();
         boolean flag = false;
 
@@ -27,8 +31,9 @@ public class A1Solution implements DynamicDispatchExplainer {
         }
         if (!d.getMethodsBySignature(methodName,argumentTypes).isEmpty()){
             MethodDeclaration a = d.getMethodsBySignature(methodName, argumentTypes).get(0);
-//            To Check Method "a" is Static or Private
+//            To Check Method is Static or Private
             if (a.isStatic() || a.isPrivate()) {
+//                Flag condition to check for A and B (Static and Private)
                 if (!flag) {
                     ret.add(d.getName().asString());
                 }
