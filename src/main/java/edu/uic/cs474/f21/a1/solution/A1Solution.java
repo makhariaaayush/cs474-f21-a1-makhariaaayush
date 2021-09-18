@@ -17,14 +17,15 @@ public class A1Solution implements DynamicDispatchExplainer {
         boolean flag = false;
 
         ClassOrInterfaceDeclaration d = classes.get(receiverType);
-
-        while (d.getMethodsBySignature(methodName,argumentTypes).isEmpty()) {
-            ClassOrInterfaceType d1 = d.getExtendedTypes().get(0);
-            d = classes.get(d1.getName().asString());
-            flag = true;
+        if (d.getMethodsBySignature(methodName,argumentTypes).isEmpty()) {
+//            Using the while loop to traverse through the hierarchy multiple times
+            while (d.getMethodsBySignature(methodName, argumentTypes).isEmpty()) {
+                ClassOrInterfaceType d1 = d.getExtendedTypes().get(0);
+                d = classes.get(d1.getName().asString());
+                flag = true;
+            }
         }
-
-        if (!d.getMethodsBySignature(methodName,argumentTypes).isEmpty()) {
+        if (!d.getMethodsBySignature(methodName,argumentTypes).isEmpty()){
             MethodDeclaration a = d.getMethodsBySignature(methodName, argumentTypes).get(0);
 //            To Check Method "a" is Static or Private
             if (a.isStatic() || a.isPrivate()) {
@@ -33,11 +34,10 @@ public class A1Solution implements DynamicDispatchExplainer {
                 }
                 return ret;
             }
-//            To Check is Method "a" is Abstract
+//            To Check is Method "a" is Abstract and return Empty
             if (a.isAbstract()) {
                 return ret;
             }
-//            Return a value if none
             ret.add(d.getName().asString());
         }
         return ret;
