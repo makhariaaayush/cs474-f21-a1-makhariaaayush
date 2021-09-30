@@ -89,6 +89,17 @@ public class A1Solution implements DynamicDispatchExplainer {
             }
             break;
         }
+        if("java.lang.Object".equals(receiverType)) {
+            nextClass: for (ClassOrInterfaceDeclaration d : classes.values()) {
+                for (MethodDeclaration a : d.getMethodsByName(methodName)) {
+                    if (sameArgs(a, argumentTypes)) {
+                        ret.add(d.getNameAsString());
+                        continue nextClass;
+                    }
+                }
+                ret.add("java.lang.Object");
+            }
+        }
 
 
 
