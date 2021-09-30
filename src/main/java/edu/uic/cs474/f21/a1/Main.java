@@ -64,6 +64,6 @@ public class Main {
     }
 
     public Set<String> explain(String receiverType, String methodName, String ... argumentTypes) {
-        return getExplainer().explain(this.classes, receiverType, methodName, argumentTypes);
+        return (Set<String>) getExplainer().explain(this.classes, receiverType, methodName, argumentTypes);
     }
 }

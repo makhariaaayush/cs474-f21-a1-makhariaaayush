@@ -62,18 +62,14 @@ public class A1Solution implements DynamicDispatchExplainer {
             flag = true;
         }
     }
-    @Override
-    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
 
+    private Set<String> findDown(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes){
         Set<String> ret = new HashSet<>();
-        findUp(classes,receiverType,methodName,ret,argumentTypes);
 
         ClassOrInterfaceDeclaration subClass = classes.get(receiverType);
 
-        while(subClass != null) {
             for (ClassOrInterfaceDeclaration d : classes.values()) {
                 if (d.getExtendedTypes().isNonEmpty() && d.getExtendedTypes(0).getNameAsString().equals(subClass.getNameAsString())) {
-                    subClass = d;
                     for (MethodDeclaration a : d.getMethodsByName(methodName)) {
                         if (!sameArgs(a, argumentTypes))
                             continue;
@@ -85,10 +81,20 @@ public class A1Solution implements DynamicDispatchExplainer {
 
                         ret.add(d.getName().asString());
                     }
+
+
+                    ret.addAll(findDown(classes, d.getNameAsString(), methodName, argumentTypes));
                 }
-            }
-            break;
         }
+        return ret;
+    }
+
+    @Override
+    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
+
+        Set<String> ret = new HashSet<>();
+        findUp(classes,receiverType,methodName,ret,argumentTypes);
+
         if("java.lang.Object".equals(receiverType)) {
             nextClass: for (ClassOrInterfaceDeclaration d : classes.values()) {
                 for (MethodDeclaration a : d.getMethodsByName(methodName)) {
@@ -100,10 +106,9 @@ public class A1Solution implements DynamicDispatchExplainer {
                 ret.add("java.lang.Object");
             }
         }
-
-
-
-
+        else{
+            ret.addAll(findDown(classes, receiverType, methodName, argumentTypes));
+        }
         return ret;
     }
 

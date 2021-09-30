@@ -3,7 +3,6 @@ package edu.uic.cs474.f21.a1;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import java.util.Map;
-import java.util.Set;
 
 public interface DynamicDispatchExplainer {
 
@@ -33,6 +32,6 @@ public interface DynamicDispatchExplainer {
      * @param argumentTypes   The class name of each method argument
      * @return                A set containing all the classes in the hierarchy that have a method that may be called
      */
-    Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String ... argumentTypes);
+    Object explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String ... argumentTypes);
 
 }
