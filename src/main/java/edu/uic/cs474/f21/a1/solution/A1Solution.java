@@ -33,24 +33,22 @@ public class A1Solution implements DynamicDispatchExplainer {
             new MethodInfo("hashCode", new String[]{})
     );
 
-    @Override
-    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
-
-        Set<String> ret = new HashSet<>();
+    private void findUp(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName,Set<String> ret, String... argumentTypes)
+    {
         boolean flag = false;
         ClassOrInterfaceDeclaration d = classes.get(receiverType);
         methodFound: while (d != null) {
             for (MethodDeclaration a : d.getMethodsByName(methodName)) {
-            if(!sameArgs(a, argumentTypes))
-                continue;
-            if ((a.isStatic() || a.isPrivate()) && flag)
-                continue;
+                if(!sameArgs(a, argumentTypes))
+                    continue;
+                if ((a.isStatic() || a.isPrivate()) && flag)
+                    continue;
 
-            if (a.isAbstract())
-                continue;
+                if (a.isAbstract())
+                    continue;
 
-            ret.add(d.getName().asString());
-            break methodFound;
+                ret.add(d.getName().asString());
+                break methodFound;
             }
             if (d.getExtendedTypes().isEmpty()) {
                 MethodInfo mi = new MethodInfo(methodName, argumentTypes);
@@ -63,6 +61,33 @@ public class A1Solution implements DynamicDispatchExplainer {
             d = classes.get(superName);
             flag = true;
         }
+    }
+    @Override
+    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
+
+        Set<String> ret = new HashSet<>();
+        findUp(classes,receiverType,methodName,ret,argumentTypes);
+
+        for(ClassOrInterfaceDeclaration d:classes.values()){
+            if(d.getExtendedTypes().isNonEmpty() && d.getExtendedTypes(0).getNameAsString().equals(receiverType)){
+
+                for(MethodDeclaration a : d.getMethodsByName(methodName)){
+                    if(!sameArgs(a, argumentTypes))
+                        continue;
+                    if ((a.isStatic() || a.isPrivate()))
+                        continue;
+
+                    if (a.isAbstract())
+                        continue;
+
+                    ret.add(d.getName().asString());
+                }
+            }
+        }
+
+
+
+
         return ret;
     }
 
