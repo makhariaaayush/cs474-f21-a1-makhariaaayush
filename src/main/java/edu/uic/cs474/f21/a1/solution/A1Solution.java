@@ -10,47 +10,96 @@ import java.util.Map;
 import java.util.Set;
 
 public class A1Solution implements DynamicDispatchExplainer {
-    @Override
-    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
-// equal = false
-//         hashcode
-//         equals java.lang.parser
-//         tostring
-//
-        Set<String> ret = new HashSet<>();
-        boolean flag = false;
 
-        ClassOrInterfaceDeclaration d = classes.get(receiverType);
-        if (d.getMethodsBySignature(methodName,argumentTypes).isEmpty()) {
-//            Using the while loop to traverse through the hierarchy multiple times
-            while (d.getMethodsBySignature(methodName, argumentTypes).isEmpty()) {
-                ClassOrInterfaceType d1 = d.getExtendedTypes().get(0);
-                d = classes.get(d1.getName().asString());
-                flag = true;
+    private boolean sameArgs(MethodDeclaration a, String ... argumentTypes){
+        if(a.getParameters().size() != argumentTypes.length)
+            return false;
+
+        for(int i = 0; i< argumentTypes.length; i ++){
+            if(!a.getParameters().get(i).getTypeAsString().equals(argumentTypes[i])){
+                return false;
+
             }
         }
-        if (!d.getMethodsBySignature(methodName,argumentTypes).isEmpty()){
-            MethodDeclaration a = d.getMethodsBySignature(methodName, argumentTypes).get(0);
-//            To Check Method is Static or Private
-            if (a.isStatic() || a.isPrivate()) {
-//                Flag condition to check for A and B (Static and Private)
-                if (!flag) {
-                    ret.add(d.getName().asString());
-                }
-                return ret;
-            }
-//            To Check is Method "a" is Abstract and return Empty
-            if (a.isAbstract()) {
-                return ret;
-            }
+        return true;
+    }
+
+    private static Set<MethodInfo> methodsBelongingToJavaLangObject = Set.of(
+            new MethodInfo("toString", new String[]{}),
+            new MethodInfo("equals", new String[]{"java.lang.Object"}),
+            new MethodInfo("wait", new String[]{}),
+            new MethodInfo("notify", new String[]{}),
+            new MethodInfo("notifyAll", new String[]{}),
+            new MethodInfo("hashCode", new String[]{})
+    );
+
+    @Override
+    public Set<String> explain(Map<String, ClassOrInterfaceDeclaration> classes, String receiverType, String methodName, String... argumentTypes) {
+
+        Set<String> ret = new HashSet<>();
+        boolean flag = false;
+        ClassOrInterfaceDeclaration d = classes.get(receiverType);
+        methodFound: while (d != null) {
+            for (MethodDeclaration a : d.getMethodsByName(methodName)) {
+            if(!sameArgs(a, argumentTypes))
+                continue;
+            if ((a.isStatic() || a.isPrivate()) && flag)
+                continue;
+
+            if (a.isAbstract())
+                continue;
+
             ret.add(d.getName().asString());
+            break methodFound;
+            }
+            if (d.getExtendedTypes().isEmpty()) {
+                MethodInfo mi = new MethodInfo(methodName, argumentTypes);
+                if (methodsBelongingToJavaLangObject.contains(mi)) {
+                    ret.add("java.lang.Object");
+                }
+                break;
+            }
+            String superName = d.getExtendedTypes().get(0).getNameAsString();
+            d = classes.get(superName);
+            flag = true;
         }
         return ret;
     }
+
+    private static class MethodInfo {
+        final String name;
+        final String[] arguments;
+
+        public MethodInfo(String name, String[] arguments) {
+            this.name = name;
+            this.arguments = arguments;
+        }
+
+        @Override
+        public int hashCode() {
+            int ret = name.hashCode();
+            for (String arg : arguments) {
+
+                ret = ret ^ arg.hashCode();
+            }
+            return ret;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof MethodInfo))
+                return false;
+            MethodInfo mi = (MethodInfo) obj;
+            if (!mi.name.equals(this.name)) {
+                return false;
+            }
+            if (mi.arguments.length != this.arguments.length)
+                return false;
+            for (int i = 0; i < this.arguments.length; i++) {
+                if (!mi.arguments[i].equals(this.arguments[i]))
+                    return false;
+            }
+            return true;
+        }
+    }
 }
-
-
-
-
-
-
