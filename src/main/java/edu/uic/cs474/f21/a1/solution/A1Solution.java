@@ -68,21 +68,26 @@ public class A1Solution implements DynamicDispatchExplainer {
         Set<String> ret = new HashSet<>();
         findUp(classes,receiverType,methodName,ret,argumentTypes);
 
-        for(ClassOrInterfaceDeclaration d:classes.values()){
-            if(d.getExtendedTypes().isNonEmpty() && d.getExtendedTypes(0).getNameAsString().equals(receiverType)){
+        ClassOrInterfaceDeclaration subClass = classes.get(receiverType);
 
-                for(MethodDeclaration a : d.getMethodsByName(methodName)){
-                    if(!sameArgs(a, argumentTypes))
-                        continue;
-                    if ((a.isStatic() || a.isPrivate()))
-                        continue;
+        while(subClass != null) {
+            for (ClassOrInterfaceDeclaration d : classes.values()) {
+                if (d.getExtendedTypes().isNonEmpty() && d.getExtendedTypes(0).getNameAsString().equals(subClass.getNameAsString())) {
+                    subClass = d;
+                    for (MethodDeclaration a : d.getMethodsByName(methodName)) {
+                        if (!sameArgs(a, argumentTypes))
+                            continue;
+                        if ((a.isStatic() || a.isPrivate()))
+                            continue;
 
-                    if (a.isAbstract())
-                        continue;
+                        if (a.isAbstract())
+                            continue;
 
-                    ret.add(d.getName().asString());
+                        ret.add(d.getName().asString());
+                    }
                 }
             }
+            break;
         }
 
 
